@@ -26,7 +26,7 @@ def get_json(file_path):
     
     csv_files = []
     for a_file in all_files:
-        if a_file.endswith('.csv'):
+        if a_file.endswith('h1b_input.csv'):
             csv_files.append(a_file)
 
     print(csv_files)
@@ -86,11 +86,22 @@ def get_json(file_path):
             }
             top_results['profession']['total'] = count_profession
             top_results['state']['total'] = count_state
+            
+            
             output_obj[year] = top_results
 
-        output_file.append(output_obj)
+        print(';'.join(top_results['header']))        
+        for key in top_results['profession']:
+            if key is not "total":
+                print("{};{};{}".format(key, top_results['profession'][key], top_results['profession'][key] / top_results['profession']['total']))
+        print(';'.join(top_results['header']))
+        for key in top_results['state']:
+            if key is not "total":
+                print("{};{};{}".format(key, top_results['state'][key], top_results['state'][key] / top_results['state']['total']))
+        #output_file.append(output_obj)
 
     print(output_file)    
+
 if __name__ == '__main__':
     # Open a file and get json object back
     file_name = 'h1b_input.csv'
