@@ -4,6 +4,7 @@ import os
 import csv
 import re
 import heapq
+import operator
 
 yearly_headers = {
     '2017': ['CASE_STATUS', 'SOC_NAME', 'WORKSITE_STATE'],
@@ -26,7 +27,7 @@ def get_json(file_path):
     
     csv_files = []
     for a_file in all_files:
-        if a_file.endswith('h1b_input.csv'):
+        if a_file.endswith('input.csv'):
             csv_files.append(a_file)
 
     print(csv_files)
@@ -55,6 +56,7 @@ def get_json(file_path):
             results_state = {}
             count_profession, count_state = 0, 0
  
+            #no_prof, no_state = 0, 0
             for line in reader:
                 certified = line[columns[0]] == "CERTIFIED"
                 profession = line[columns[1]]
@@ -71,11 +73,13 @@ def get_json(file_path):
                         results_state[state] += 1
                     elif state not in results_state:
                         results_state[state] = 1
-                #if not profession and certified:
-                 #   print('No profession but certified') 
-                #if not state and certified:
-                 #   print('No state but certified')
 
+                #if not profession and certified:
+                 #   no_prof += 1                
+                #if not state and certified:
+                 #   no_state += 1
+
+            #print('No profession -> {} No state -> {}'.format(no_prof, no_state))
             top_states = heapq.nlargest(10, results_state, key=results_state.get)
             top_professions = heapq.nlargest(10, results_profession, key=results_profession.get)
 
@@ -90,16 +94,24 @@ def get_json(file_path):
             
             output_obj[year] = top_results
 
-        print(';'.join(top_results['header']))        
-        for key in top_results['profession']:
-            if key is not "total":
-                print("{};{};{}".format(key, top_results['profession'][key], top_results['profession'][key] / top_results['profession']['total']))
+            from functools import cmp_to_key
+            print
+            sorted_states = sorted(top_results['state'].items(), key=lambda k: k[1])
+            print(sorted_states)
+            sorted_states = sorted(top_results['state'].items(), key=lambda k: k[0], reverse=True)
+            print(sorted_states)
+            sorted_professions = sorted(top_results['profession'].items(), key=lambda k: (k[0], k[1]), reverse=True)
+        
         print(';'.join(top_results['header']))
-        for key in top_results['state']:
-            if key is not "total":
-                print("{};{};{}".format(key, top_results['state'][key], top_results['state'][key] / top_results['state']['total']))
+        total = sorted_professions[-1][1]
+        for profession in sorted_professions:
+             print("{};{};{:.1f}%".format(profession[0], profession[1], profession[1] / total * 100))
+        print()
+        print(';'.join(top_results['header']))
+        for state in sorted_states:
+            print("{};{};{:.1f}%".format(state[0], state[1], state[1] / total * 100))
+            
         #output_file.append(output_obj)
-
     print(output_file)    
 
 if __name__ == '__main__':
