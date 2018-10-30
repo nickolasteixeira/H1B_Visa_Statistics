@@ -133,7 +133,7 @@ def write_occupation(occupations, file_path, file_name, header):
     os.chdir(file_path)
     total = occupations[0][1]
     with open(file_name, 'w') as fd:
-        title = "{};{};{}".format(header[0], header[1], header[1])
+        title = "{};{};{}".format(header[0], header[1], header[2])
         fd.write("{}\n".format(title))
         for occ in occupations[1:]:
             string = "{};{};{:.1f}%".format(occ[0], occ[1], occ[1]/total * 100)
