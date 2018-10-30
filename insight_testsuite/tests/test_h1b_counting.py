@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 '''Unit tests for all functions in h1b_counting'''
-from src.h1b_counting import check_parameters, yearly_headers, find_year, open_file, sort_dictionaries, write_occupation, write_state
+from src.h1b_counting import check_parameters, yearly_headers, find_year, get_certified_h1b, sort_dictionaries, write_occupation, write_state
 import os
 import unittest
 import subprocess
@@ -28,7 +28,7 @@ class TestData(unittest.TestCase):
     def test_checking_docstrings_functions(self):
         self.assertIsNotNone(check_parameters.__doc__)
         self.assertIsNotNone(find_year.__doc__)
-        self.assertIsNotNone(open_file.__doc__)
+        self.assertIsNotNone(get_certified_h1b.__doc__)
 
 
     def test_find_year(self):
@@ -52,7 +52,7 @@ class TestData(unittest.TestCase):
                     self.assertTrue(da_list[index][1] >= da_list[index + 1][1])
     
     def test_open_file(self):
-        occ, state = open_file(self.input_path, self.input_file, self.header)
+        occ, state = get_certified_h1b(self.input_path, self.input_file, self.header)
         self.assertDictEqual(self.occ_test, occ)
         self.assertDictEqual(self.state_test, state) 
 
