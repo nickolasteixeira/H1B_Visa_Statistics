@@ -29,3 +29,4 @@ If you have multiple input sources in your input folder, you can modify the `run
 ## Areas of Improvment
 
 1. I could have definitely used branches for new features instead of pushing to master.
+2. Always add more test cases
