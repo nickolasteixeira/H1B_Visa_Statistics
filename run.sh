@@ -18,7 +18,6 @@ python3 ./src/h1b_counting.py ./input/h1b_input.csv ./output/top_10_occupations.
 #python3 ./src/h1b_counting.py ./input/H1B_FY_2011.csv ./output/top_10_occupations.txt ./output/top_10_states.txt
 #python3 ./src/h1b_counting.py ./input/H1B_FY_2010.csv ./output/top_10_occupations.txt ./output/top_10_states.txt
 #python3 ./src/h1b_counting.py ./input/H1B_FY_2009.csv ./output/top_10_occupations.txt ./output/top_10_states.txt
-#python3 ./src/h1b_counting.py ./input/H1B_FY_2011.csv ./output/top_10_occupations.txt ./output/top_10_states.txt
 
 
 # To cat out the results, uncomment below
