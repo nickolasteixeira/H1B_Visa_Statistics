@@ -22,4 +22,4 @@ python3 ./src/h1b_counting.py ./input/h1b_input.csv ./output/top_10_occupations.
 
 
 # To cat out the results, uncomment below
-#cat ./output/top_10_occupations.txt cat ./output/top_10_states.txt
+#echo;cat ./output/top_10_occupations.txt;echo;cat ./output/top_10_states.txt
