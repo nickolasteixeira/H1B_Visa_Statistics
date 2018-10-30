@@ -1,10 +1,8 @@
 #!/usr/bin/env python3
-''' '''
+'''Module that '''
 import csv
 import heapq
-import operator
 import os
-from operator import itemgetter
 import re
 import sys
 
@@ -20,102 +18,6 @@ yearly_headers = {
     '2009': ['STATUS', 'LCA_CASE_SOC_NAME', 'LCA_CASE_WORKLOC1_STATE'],
     '2008': ['APPROVAL_STATUS', 'OCCUPATIONAL_TITLE', 'STATE_2']
 }
-
-def get_json(file_path):
-
-    ''' 
-    d = os.getcwd()
-    d = os.chdir('input')
-    all_files = os.listdir(d)
-    
-    csv_files = []
-    for a_file in all_files:
-        if a_file.endswith('.csv'):
-            csv_files.append(a_file)
-
-    print(csv_files)
-    # Store obj for each file
-    output_file = []
- 
-    '''
-    
-    for a_file in csv_files:
-        print(a_file)
-        year = re.findall('\d{4}', a_file)
-        if year:
-            year = year[0]            
-            print('year------->', year)
-        else:
-            year = '2017'
-
-        output_obj = {year: {}}        
-
-        with open(a_file, 'r') as fd:
-            reader = csv.reader(fd, delimiter=';')
-            header = next(reader)
-           
-            year_header = yearly_headers[year]
-            columns = [index for index in range(len(header)) if header[index] in year_header]
-            
-            results_profession = {}
-            results_state = {}
-            count_profession, count_state = 0, 0
- 
-            #no_prof, no_state = 0, 0
-            for line in reader:
-                certified = line[columns[0]] == "CERTIFIED"
-        
-                if certified:
-                    profession = line[columns[1]]
-                    state = line[columns[2]]
-                    if profession in results_profession:
-                        results_profession[profession] += 1
-                    elif profession not in results_profession:
-                        results_profession[profession] = 1
-                    if state in results_state:
-                        results_state[state] += 1
-                    elif state not in results_state:
-                        results_state[state] = 1
-
-                #if not profession and certified:
-                 #   no_prof += 1                
-                #if not state and certified:
-                 #   no_state += 1
-
-            #print('No profession -> {} No state -> {}'.format(no_prof, no_state))
-            top_states = heapq.nlargest(10, results_state, key=results_state.get)
-            top_professions = heapq.nlargest(10, results_profession, key=results_profession.get)
-
-            top_results = {
-                'header': ['TOP_OCCUPATIONS', 'NUMBER_CERTIFIED_APPLICATIONS', 'PERCENTAGE'],
-                'profession': {profession: results_profession[profession] for profession in top_professions},
-                'state': {state: results_state[state] for state in top_states}
-            }
-            top_results['profession']['total'] = count_profession
-            top_results['state']['total'] = count_state
-            
-            
-            output_obj[year] = top_results
-
-            from operator import itemgetter
-            sorted_states = sorted(top_results['state'].items(), key=itemgetter(0))
-            sorted_states = sorted(sorted_states, key=itemgetter(1))
-            sorted_states = sorted(sorted_states, key=itemgetter(1), reverse=True)
-            
-            sorted_professions = sorted(top_results['profession'].items(), key=itemgetter(0))
-            sorted_professions = sorted(sorted_professions, key=itemgetter(1))
-            sorted_professions = sorted(sorted_professions, key=itemgetter(1), reverse=True)
-        
-        print(';'.join(top_results['header']))
-        total = sorted_professions[0][1]
-        for profession in sorted_professions[1:]:
-             print("{};{};{:.1f}%".format(profession[0], profession[1], profession[1] / total * 100))
-        print()
-        print(';'.join(top_results['header']))
-        for state in sorted_states[1:]:
-            print("{};{};{:.1f}%".format(state[0], state[1], state[1] / total * 100))
-            
-        #output_file.append(output_obj)
 
 def check_parameters(params):
     try:
@@ -142,8 +44,8 @@ def check_parameters(params):
 
 
 def find_year(input_file):
-    if not input_file:
-        print("Please input a file to find the year of the file")
+    if not input_file or type(input_file) is not str:
+        print("Please pass a string ojbect as an input to find the year of the file")
         return None
 
     year = re.findall('\d{4}', input_file)
@@ -153,61 +55,113 @@ def find_year(input_file):
     return '2017' 
 
 def open_file(file_path, file_name, yearly_header):
-    if not file_path:
-        print("Please input a file path to change to")
+    if not file_path or type(file_path) is not str:
+        print("Please input a file path to change to as a string object")
         return None
-    if not file_name:
-        print("Please input a file to extract from")
+    if not file_name or type(file_path) is not str:
+        print("Please input a file to extract from as a string object")
         return None
-    if not yearly_header:
-        print("Please input a list of header attributes as strings")
+    if not yearly_header or type(yearly_header) is not list:
+        print("Please input a list of header attributes as a string object")
         return None
-
+    
     owd = os.getcwd()       
     os.chdir(file_path)
-    certified_profession, certified_state = {}, {}
+    certified_occupation, certified_state = {}, {}
     with open(file_name, 'r') as fd:
         reader = csv.reader(fd, delimiter=';')
         file_header = next(reader)
         columns = [index for index in range(len(file_header)) if file_header[index] in yearly_header]
-       
+
+        #Keeping track of a total number to then get the percentages later for file output      
+        total_certified_state, total_certified_occupation = 0, 0 
         for line in reader:
             certified = line[columns[0]] == "CERTIFIED"
             if certified:
+                total_certified_state += 1
+                total_certified_occupation += 1
                 profession = line[columns[1]]
                 state = line[columns[2]]
-                if profession in certified_profession: certified_profession[profession] += 1
-                elif profession not in certified_profession: certified_profession[profession] = 1
+                if profession in certified_occupation: certified_occupation[profession] += 1
+                elif profession not in certified_occupation: certified_occupation[profession] = 1
                 
                 if state in certified_state: certified_state[state] += 1
                 elif state not in certified_state: certified_state[state] = 1
 
+        #Adding the total count of certified profession and state to the dictionary to calcualte values
+        certified_occupation['total'] = total_certified_occupation
+        certified_state['total'] = total_certified_state
         
-    return certified_profession, certified_state
-    os.chir(owd)
-        
+    os.chdir(owd)
+    return certified_occupation, certified_state
 
    
-def sort_dictionaries(occupations, states, amount):
+def sort_dictionaries(occupations, states, amount=10):
+    if not occupations or type(occupations) is not dict:
+        print("No certified occupations to sort through")
+        return None
+    if not states or type(states) is not dict:
+        print("No certified states to sort through")
+        return None
+
     # Finds the top amount of occupations and states in a list
     top_occupations_list = heapq.nlargest(amount, occupations, key=occupations.get)
     top_states_list = heapq.nlargest(amount, states, key=states.get)
 
     # creates a new dictionary based on the top amount of occupations and states
-    top_occupations = {occupation :occupations[occupation] for occupation in occupations}
-    top_states = {state:states[state] for state in states}
-    
+    top_occupations = {occupation:occupations[occupation] for occupation in top_occupations_list}
+    top_states = {state:states[state] for state in top_states_list}
+   
     #sorts based on incrementing value, then alphabetical order
-    sorted_occupations = sorted(top_occupations.items(), key=itemgetter(0))
-    sorted_occupations = sorted(sorted_occupations, key=itemgetter(1))
-    sorted_occupations = sorted(sorted_occupations, key=itemgetter(1), reverse=True)
-    
-    sorted_states = sorted(top_states.items(), key=itemgetter(0))
-    sorted_states = sorted(sorted_states, key=itemgetter(1))
-    sorted_states = sorted(sorted_states, key=itemgetter(1), reverse=True)
-    
+    sorted_occupations = sorted(top_occupations.items(), key=lambda x: (-x[1], x[0]))
+    sorted_states = sorted(top_states.items(), key=lambda x: (-x[1], x[0]))
+   
     return sorted_occupations, sorted_states
- 
+
+def write_occupation(occupations, file_path, file_name, header):
+    if not occupations or type(occupations) is not list:
+        print("No top occupations. Please provide occupations input as a list")
+        return None
+    if not file_path or (type(file_path) is not str or type(file_path) is not str):
+        print("No file path or file name provided. Please provide both as a string object")
+        return None
+    if len(header) is not 3 or type(header) is not list or not header:
+        print("No header. Please provide list of 3 header string values")
+        return None
+
+    owd = os.getcwd()       
+    os.chdir(file_path)
+    total = occupations[0][1]
+    with open(file_name, 'w') as fd:
+        title = "{};{};{}".format(header[0], header[1], header[1])
+        fd.write("{}\n".format(title))
+        for occ in occupations[1:]:
+            string = "{};{};{:.1f}%".format(occ[0], occ[1], occ[1]/total * 100)
+            fd.write("{}\n".format(string)) 
+    os.chdir(owd)
+
+def write_state(states, file_path, file_name, header):
+    if not states or type(states) is not list:
+        print("No top occupations. Please provide occupations input as a list")
+        return None
+    if not file_path or (type(file_path) is not str or type(file_path) is not str):
+        print("No file path or file name provided. Please provide both as a string object")
+        return None
+    if len(header) is not 3 or type(header) is not list or not header:
+        print("No header. Please provide list of 3 header string values")
+        return None
+        
+    owd = os.getcwd()       
+    os.chdir(file_path)
+    total = states[0][1]
+    with open(file_name, 'w') as fd:
+        title = "{};{};{}".format(header[0], header[1], header[1])
+        fd.write("{}\n".format(title))
+        for state in states[1:]:
+            string = "{};{};{:.1f}%".format(state[0], state[1], state[1]/total * 100)
+            fd.write("{}\n".format(string)) 
+    os.chdir(owd)
+
 if __name__ == '__main__':
     # Open a file and get json object back
     if check_parameters(sys.argv):
@@ -215,18 +169,21 @@ if __name__ == '__main__':
         input_file = sys.argv[1].split('/')[-1]
 
         occ_filepath =  sys.argv[2].rsplit('/', 1)[0]
-        occ_file = sys.argv[1].split('/')[-1]
+        occ_file = sys.argv[2].split('/')[-1]
+        occ_header = ['TOP_OCCUPATIONS','NUMBER_CERTIFIED_APPLICATIONS', 'PERCENTAGE']
 
         state_filepath = sys.argv[3].rsplit('/', 1)[0]
-        state_file_name = sys.argv[3].split('/')[-1]
+        state_file = sys.argv[3].split('/')[-1]
+        state_header = ['TOP_STATES', 'NUMBER_CERTIFIED_APPLICATIONS', 'PERCENTAGE']
 
         # Finds the header that associates with each file based on the year -> Specs: https://www.foreignlaborcert.doleta.gov/performancedata.cfm        
         year = find_year(input_file)
         header = yearly_headers[year]
-        
+
         certified_occupations, certified_states = open_file(input_filepath, input_file, header)
         #sort each object based on specifications
-        sort1, sort2 = sort_dictionaries(certified_occupations, certified_states, 10)  
-        
+        top_occupation, top_state = sort_dictionaries(certified_occupations, certified_states, 10)  
+
         # pass sorted values to write to output file
-        
+        write_occupation(top_occupation, occ_filepath, occ_file, occ_header)
+        write_state(top_state, state_filepath, state_file, state_header)  
