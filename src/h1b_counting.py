@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
-'''Module that '''
+'''Module that finds top 10 certified occupations and states for H1B Visas'''
 import csv
 import heapq
 import os
 import re
 import sys
 
+#Each year, record header laytouts change. This is dictionary that mimics the header from each year. Refer to LCA Programs (H1-B, H-1B1, E-3) https://www.foreignlaborcert.doleta.gov/performancedata.cfm
 yearly_headers = {
     '2017': ['CASE_STATUS', 'SOC_NAME', 'WORKSITE_STATE'],
     '2016': ['CASE_STATUS', 'SOC_NAME', 'WORKSITE_STATE'],
@@ -20,6 +21,11 @@ yearly_headers = {
 }
 
 def check_parameters(params):
+    '''
+        Checks parameters from command line before running script
+        Args:
+            params (list): List of string parameters to check if the script should rund
+    '''
     try:
         condition = True 
         if len(params) is not 4:
@@ -44,17 +50,29 @@ def check_parameters(params):
 
 
 def find_year(input_file):
+    '''
+        Based on the input file, the function tries to find a year in YYYY fromat
+        Args:
+            input_file (str): input file from command line
+    '''
     if not input_file or type(input_file) is not str:
         print("Please pass a string ojbect as an input to find the year of the file")
         return None
 
     year = re.findall('\d{4}', input_file)
-    if year:
+    if year and (int(year) >= 2008 and int(year) <= 2017):
         year = year[0]            
         return year
     return '2017' 
 
 def open_file(file_path, file_name, yearly_header):
+    ''' 
+        Function that changes to the file_path input, opens the file_name, creates a dictionary of all certified applications with occupations and states in separate dictionaries
+        Args:
+            file_path (str): the filepath to change the directory to
+            file_name (str): the filename to open
+            yearly_header (list): a list of all the yearly headers associated with each file based on the year
+    '''
     if not file_path or type(file_path) is not str:
         print("Please input a file path to change to as a string object")
         return None
@@ -71,6 +89,7 @@ def open_file(file_path, file_name, yearly_header):
     with open(file_name, 'r') as fd:
         reader = csv.reader(fd, delimiter=';')
         file_header = next(reader)
+        #finds all the indexes associated with each year header
         columns = [index for index in range(len(file_header)) if file_header[index] in yearly_header]
 
         #Keeping track of a total number to then get the percentages later for file output      
@@ -82,6 +101,7 @@ def open_file(file_path, file_name, yearly_header):
                 total_certified_occupation += 1
                 profession = line[columns[1]]
                 state = line[columns[2]]
+                # adding or setting profession and state to each object to keep a count
                 if profession in certified_occupation: certified_occupation[profession] += 1
                 elif profession not in certified_occupation: certified_occupation[profession] = 1
                 
@@ -97,6 +117,13 @@ def open_file(file_path, file_name, yearly_header):
 
    
 def sort_dictionaries(occupations, states, amount=10):
+    '''
+        Sorts the dictionaries based on the amount length listed above
+        Args:
+            occupations (dict): dictionary with all occupations, number of occurances for each occupation and a total ammount
+            states (dict): dictionary with all states, number of occurances for each occupation and a total ammount
+            amount (int): length of dictionary to build based on sorting
+    '''
     if not occupations or type(occupations) is not dict:
         print("No certified occupations to sort through")
         return None
@@ -104,7 +131,7 @@ def sort_dictionaries(occupations, states, amount=10):
         print("No certified states to sort through")
         return None
 
-    # Finds the top amount of occupations and states in a list
+    # Finds the top amount of occupations and states in a list based on ammount
     top_occupations_list = heapq.nlargest(amount, occupations, key=occupations.get)
     top_states_list = heapq.nlargest(amount, states, key=states.get)
 
@@ -119,6 +146,14 @@ def sort_dictionaries(occupations, states, amount=10):
     return sorted_occupations, sorted_states
 
 def write_occupation(occupations, file_path, file_name, header):
+    '''
+        Function that changes to the file_path directory, writes to the file_name the header and occupations provided
+        Args:
+            occupations (dict): sorted dictionary of the top 10 values
+            file_path (str): string to the file path to change to
+            file_name (str): string of the filename to write to
+            header (list): list of header string names
+    '''
     if not occupations or type(occupations) is not list:
         print("No top occupations. Please provide occupations input as a list")
         return None
@@ -135,12 +170,21 @@ def write_occupation(occupations, file_path, file_name, header):
     with open(file_name, 'w') as fd:
         title = "{};{};{}".format(header[0], header[1], header[2])
         fd.write("{}\n".format(title))
+        # Loop through each occupation, excluding the total amount and write to file
         for occ in occupations[1:]:
             string = "{};{};{:.1f}%".format(occ[0], occ[1], occ[1]/total * 100)
             fd.write("{}\n".format(string)) 
     os.chdir(owd)
 
 def write_state(states, file_path, file_name, header):
+    '''
+        Function that changes to the file_path directory, writes to the file_name the header and states provided
+        Args:
+            states (dict): sorted dictionary of the top 10 values
+            file_path (str): string to the file path to change to
+            file_name (str): string of the filename to write to
+            header (list): list of header string names
+    ''' 
     if not states or type(states) is not list:
         print("No top occupations. Please provide occupations input as a list")
         return None
@@ -157,6 +201,7 @@ def write_state(states, file_path, file_name, header):
     with open(file_name, 'w') as fd:
         title = "{};{};{}".format(header[0], header[1], header[2])
         fd.write("{}\n".format(title))
+        # Loop through each states, excluding the total amount and write to file
         for state in states[1:]:
             string = "{};{};{:.1f}%".format(state[0], state[1], state[1]/total * 100)
             fd.write("{}\n".format(string)) 
@@ -165,9 +210,12 @@ def write_state(states, file_path, file_name, header):
 if __name__ == '__main__':
     # Open a file and get json object back
     if check_parameters(sys.argv):
+        
+        # Gets the filepath to change directory to and the filename to open the file
         input_filepath =  sys.argv[1].rsplit('/', 1)[0]
         input_file = sys.argv[1].split('/')[-1]
 
+        # Gets the filepath to change directory to and the filename to write to that file
         occ_filepath =  sys.argv[2].rsplit('/', 1)[0]
         occ_file = sys.argv[2].split('/')[-1]
         occ_header = ['TOP_OCCUPATIONS','NUMBER_CERTIFIED_APPLICATIONS', 'PERCENTAGE']
@@ -180,8 +228,9 @@ if __name__ == '__main__':
         year = find_year(input_file)
         header = yearly_headers[year]
 
+        # Parses throght the file and gets all occurences of professions and states in separate objects that are a 'certified' status application
         certified_occupations, certified_states = open_file(input_filepath, input_file, header)
-        #sort each object based on specifications
+        # sort each object based on largest values first, then state or occupation alphabetical order
         top_occupation, top_state = sort_dictionaries(certified_occupations, certified_states, 10)  
 
         # pass sorted values to write to output file
