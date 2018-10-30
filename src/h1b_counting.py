@@ -60,7 +60,7 @@ def find_year(input_file):
         return None
 
     year = re.findall('\d{4}', input_file)
-    if year and (int(year) >= 2008 and int(year) <= 2017):
+    if year and (int(year[0]) >= 2008 and int(year[0]) <= 2017):
         year = year[0]            
         return year
     return '2017' 
@@ -86,6 +86,7 @@ def open_file(file_path, file_name, yearly_header):
     owd = os.getcwd()       
     os.chdir(file_path)
     certified_occupation, certified_state = {}, {}
+    print("Reading from {}...".format(file_name))
     with open(file_name, 'r') as fd:
         reader = csv.reader(fd, delimiter=';')
         file_header = next(reader)
@@ -236,3 +237,4 @@ if __name__ == '__main__':
         # pass sorted values to write to output file
         write_occupation(top_occupation, occ_filepath, occ_file, occ_header)
         write_state(top_state, state_filepath, state_file, state_header)  
+        print("Files {}, {} saved".format(occ_file, state_file))
