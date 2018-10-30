@@ -26,6 +26,9 @@ If you have multiple input sources in your input folder, you can modify the `run
 - **If you do modify the source, make sure the input filename has a year in the file name and is a csv file with the delimiter as ';'**
 - **Ex: H1_FY_2015.csv** 
 
+To run tests:
+- `python3 -m unittest discover insight_testsuite/tests -b`
+
 ## Areas of Improvment
 
 1. I could have definitely used branches for new features instead of pushing to master.
