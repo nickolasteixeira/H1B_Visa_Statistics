@@ -15,7 +15,7 @@ yearly_headers = {
     '2013': ['STATUS', 'LCA_CASE_SOC_NAME', 'LCA_CASE_WORKLOC1_STATE'],
     '2012': ['STATUS', 'LCA_CASE_SOC_NAME', 'LCA_CASE_WORKLOC1_STATE'],
     '2011': ['STATUS', 'LCA_CASE_SOC_NAME', 'LCA_CASE_WORKLOC1_STATE'],
-    '2010': ['STATUS', 'LCA_CASE_SOC_NAME', 'WORK_LOCATION_STATE2'],
+    '2010': ['STATUS', 'LCA_CASE_SOC_NAME', 'WORK_LOCATION_STATE1'],
     '2009': ['STATUS', 'LCA_CASE_SOC_NAME', 'LCA_CASE_WORKLOC1_STATE'],
     '2008': ['APPROVAL_STATUS', 'OCCUPATIONAL_TITLE', 'STATE_2']
 }
@@ -45,8 +45,8 @@ def check_parameters(params):
             condition = False
         return condition
     except Exception as e:
-        return False
         print(e)
+        return False
 
 
 def find_year(input_file):
@@ -55,9 +55,12 @@ def find_year(input_file):
         Args:
             input_file (str): input file from command line
     '''
-    if not input_file or type(input_file) is not str:
-        print("Please pass a string ojbect as an input to find the year of the file")
-        return None
+    try:
+        if not input_file or type(input_file) is not str:
+            print("Please pass a string object as an input to find the year of the file")
+            return None
+    except Exception as e:
+        print(e)
 
     year = re.findall('\d{4}', input_file)
     if year and (int(year[0]) >= 2008 and int(year[0]) <= 2017):
@@ -65,7 +68,7 @@ def find_year(input_file):
         return year
     return '2017' 
 
-def open_file(file_path, file_name, yearly_header):
+def get_certified_h1b(file_path, file_name, yearly_header):
     ''' 
         Function that changes to the file_path input, opens the file_name, creates a dictionary of all certified applications with occupations and states in separate dictionaries
         Args:
@@ -73,15 +76,18 @@ def open_file(file_path, file_name, yearly_header):
             file_name (str): the filename to open
             yearly_header (list): a list of all the yearly headers associated with each file based on the year
     '''
-    if not file_path or type(file_path) is not str:
-        print("Please input a file path to change to as a string object")
-        return None
-    if not file_name or type(file_path) is not str:
-        print("Please input a file to extract from as a string object")
-        return None
-    if not yearly_header or type(yearly_header) is not list:
-        print("Please input a list of header attributes as a string object")
-        return None
+    try:
+        if not file_path or type(file_path) is not str:
+            print("Please input a file path to change to as a string object")
+            return None
+        if not file_name or type(file_path) is not str:
+            print("Please input a file to extract from as a string object")
+            return None
+        if not yearly_header or type(yearly_header) is not list:
+            print("Please input a list of header attributes as a string object")
+            return None
+    except Exception as e:
+        print(e)
     
     owd = os.getcwd()       
     os.chdir(file_path)
@@ -112,7 +118,6 @@ def open_file(file_path, file_name, yearly_header):
         #Adding the total count of certified profession and state to the dictionary to calcualte values
         certified_occupation['total'] = total_certified_occupation
         certified_state['total'] = total_certified_state
-        
     os.chdir(owd)
     return certified_occupation, certified_state
 
@@ -125,12 +130,15 @@ def sort_dictionaries(occupations, states, amount=10):
             states (dict): dictionary with all states, number of occurances for each occupation and a total ammount
             amount (int): length of dictionary to build based on sorting
     '''
-    if not occupations or type(occupations) is not dict:
-        print("No certified occupations to sort through")
-        return None
-    if not states or type(states) is not dict:
-        print("No certified states to sort through")
-        return None
+    try:
+        if not occupations or type(occupations) is not dict:
+            print("No certified occupations to sort through")
+            return None
+        if not states or type(states) is not dict:
+            print("No certified states to sort through")
+            return None
+    except Exception as e:
+        print(e)
 
     # Finds the top amount of occupations and states in a list based on ammount
     top_occupations_list = heapq.nlargest(amount, occupations, key=occupations.get)
@@ -155,15 +163,18 @@ def write_occupation(occupations, file_path, file_name, header):
             file_name (str): string of the filename to write to
             header (list): list of header string names
     '''
-    if not occupations or type(occupations) is not list:
-        print("No top occupations. Please provide occupations input as a list")
-        return None
-    if not file_path or (type(file_path) is not str or type(file_path) is not str):
-        print("No file path or file name provided. Please provide both as a string object")
-        return None
-    if len(header) is not 3 or type(header) is not list or not header:
-        print("No header. Please provide list of 3 header string values")
-        return None
+    try:
+        if not occupations or type(occupations) is not list:
+            print("No top occupations. Please provide occupations input as a list")
+            return None
+        if not file_path or type(file_path) is not str or type(file_name) is not str:
+            print("No file path or file name provided. Please provide both as a string object")
+            return None
+        if len(header) is not 3 or type(header) is not list or not header:
+            print("No header. Please provide list of 3 header string values")
+            return None
+    except Exception as e:
+        print(e)
 
     owd = os.getcwd()       
     os.chdir(file_path)
@@ -175,6 +186,8 @@ def write_occupation(occupations, file_path, file_name, header):
         for occ in occupations[1:]:
             string = "{};{};{:.1f}%".format(occ[0], occ[1], occ[1]/total * 100)
             fd.write("{}\n".format(string)) 
+    
+        print("{} saved to {} directory".format(file_name, file_path))
     os.chdir(owd)
 
 def write_state(states, file_path, file_name, header):
@@ -186,16 +199,19 @@ def write_state(states, file_path, file_name, header):
             file_name (str): string of the filename to write to
             header (list): list of header string names
     ''' 
-    if not states or type(states) is not list:
-        print("No top occupations. Please provide occupations input as a list")
-        return None
-    if not file_path or (type(file_path) is not str or type(file_path) is not str):
-        print("No file path or file name provided. Please provide both as a string object")
-        return None
-    if len(header) is not 3 or type(header) is not list or not header:
-        print("No header. Please provide list of 3 header string values")
-        return None
-        
+    try:
+        if not states or type(states) is not list:
+            print("No top occupations. Please provide occupations input as a list")
+            return None
+        if not file_path or type(file_path) is not str or type(file_name) is not str:
+            print("No file path or file name provided. Please provide both as a string object")
+            return None
+        if len(header) is not 3 or type(header) is not list or not header:
+            print("No header. Please provide list of 3 header string values")
+            return None
+    except Exception as e:
+        print(e)
+
     owd = os.getcwd()       
     os.chdir(file_path)
     total = states[0][1]
@@ -206,6 +222,8 @@ def write_state(states, file_path, file_name, header):
         for state in states[1:]:
             string = "{};{};{:.1f}%".format(state[0], state[1], state[1]/total * 100)
             fd.write("{}\n".format(string)) 
+    
+        print("{} saved to {} directory".format(file_name, file_path))
     os.chdir(owd)
 
 if __name__ == '__main__':
@@ -227,14 +245,13 @@ if __name__ == '__main__':
 
         # Finds the header that associates with each file based on the year -> Specs: https://www.foreignlaborcert.doleta.gov/performancedata.cfm        
         year = find_year(input_file)
-        header = yearly_headers[year]
-
+        header = yearly_headers.get(year)
         # Parses throght the file and gets all occurences of professions and states in separate objects that are a 'certified' status application
-        certified_occupations, certified_states = open_file(input_filepath, input_file, header)
+        certified_occupations, certified_states = get_certified_h1b(input_filepath, input_file, header)
         # sort each object based on largest values first, then state or occupation alphabetical order
         top_occupation, top_state = sort_dictionaries(certified_occupations, certified_states, 10)  
 
         # pass sorted values to write to output file
         write_occupation(top_occupation, occ_filepath, occ_file, occ_header)
         write_state(top_state, state_filepath, state_file, state_header)  
-        print("Files {}, {} saved".format(occ_file, state_file))
+        
