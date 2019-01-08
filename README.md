@@ -163,7 +163,7 @@ I wanted to break the problem down into pieces. I wanted to separated the filepa
 ## Run
 To run the application:
 
-- `$ git clone https://github.com/nickolasteixeira/DataEngineering_Puzzle_Insight'`
+- `$ git clone https://github.com/nickolasteixeira/H1B_Visa_Statistics.git'`
 - `$ ./run`
 
 If you have multiple input sources in your input folder, you can modify the `run.sh` script to use difference input and output sources. 
